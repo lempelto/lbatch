@@ -17,10 +17,10 @@ filename = "?name?"
 inF = f"?name?.?inExt?"
 colF = "neb.txt"
 
-_gpts = (96, 72, 128)
+_gpts = (64, 72, 128)
 
-_neb_fmax = 0.05
-_cineb_fmax = 0.05
+_neb_fmax = 0.1
+_cineb_fmax = 0.02
 
 _neb = True
 _cineb = True

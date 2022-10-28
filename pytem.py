@@ -23,7 +23,7 @@ _opt = True
 _fix = True
 _zfix = 9.0
 
-_gpts = (96, 72, 128)
+_gpts = (64, 72, 128)
 _pbc = (True, True, False)
 _fmax = 0.02
 
