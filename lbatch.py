@@ -156,6 +156,7 @@ if __name__ == "__main__":
     arpar.add_argument("-p", type=int, default=0, help="Number of processors")
     arpar.add_argument("-n", type=int, default=0, help="Number of nodes")
     arpar.add_argument("-m", type=float, default=0., help="Memory per processor (GB)")
+    arpar.add_argument("-t", type=int, default=0, help="Time limit in hours (int). There's no sanity checking here so check the limit for each cluster")
     arpar.add_argument("-s", action="store_true", help="Automatically submits the job to the SLURM system")
     arpar.add_argument("--sin", action="store_true", help="Loads the 'Python singularity' containing scipy, pandas, matplotlib etc. DON'T USE THIS")
     arpar.add_argument("--ppnd", type=int, default=0, help="Processors per node")
@@ -169,13 +170,19 @@ if __name__ == "__main__":
     fil = args.file
 
     verbose = args.v
+
+    timelimit = args.t
+    if timelimit != 0:
+        timelimit = f"{str(timelimit).rjust(2,'0')}:00:00"
+    else:
+        timelimit = ""
     
     if args.g: mod_gpaw = "/projappl/khonkala/21.1.0-gcc-openblas/"
     else: mod_gpaw = ""
         
     if args.neb: 
-        #print("neb, neb, neb!")
         pytem = nebtem
+    
     lazy = not args.sh
 
 
@@ -194,7 +201,8 @@ if __name__ == "__main__":
     
     if path.exists(fil):
         sph = writesh(pyFile=fil, cluster=args.c, np=args.p, nnd=args.n, ppnd=args.ppnd, mpp=args.m,
-                      e_notif=args.email, account=args.a, partition=args.part, mod_gpaw=mod_gpaw, singularity=args.sin)
+                      e_notif=args.email, account=args.a, partition=args.part, mod_gpaw=mod_gpaw,
+                      timelimit=timelimit, singularity=args.sin)
         if verbose: print("SLURM batch file:")
 
         if args.s:
