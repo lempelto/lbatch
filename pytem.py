@@ -25,15 +25,12 @@ _zfix = 9.0
 
 _gpts = (64, 72, 128)
 _pbc = (True, True, False)
-_fmax = 0.02
+_fmax = 0.005
 
 _cube = False
 _wf = False
 _ir = False
-_irInd = [208, 209, 210]
-
-img = f"" # Make sure to specify the file extension to be used here, eg. 'img.png'
-_rot = (-70, -50, -16)
+_irInd = [96, 97, 98, 99, 100, 101, 102, 103, 104]
 
 ###############
 ##########
@@ -102,13 +99,6 @@ if _cube:
     from ase.units import Bohr
     density = calc.get_all_electron_density() * Bohr**3
     write(f"{name}.cube", atoms, data=density)
-
-
-if img != "":
-    try:
-        write(img, atoms, rotation=f"{_rot[0]}x, {_rot[1]}y, {_rot[2]}z")
-    except:
-        msg += "Writing the image file failed\n"
 
 
 if _ir:
