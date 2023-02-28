@@ -61,10 +61,10 @@ calc = GPAW(
     txt = f"{name}.txt",
     occupations = FermiDirac(width=0.1),
     eigensolver = RMMDIIS(niter=3),
-    maxiter = 500,
-    nbands = -1000,
+    maxiter = 5000,
+    nbands = -500,
     setups = {'Zr': ':d,2.0'},
-    mixer = Mixer(0.1, 100, weight=50.0),
+    mixer = Mixer(0.1, 10, weight=50.0),
     # convergence={'eigenstates': 1.0e-6,'density': 1.0e-5,'energy': 1.0e-5},
     poissonsolver = PoissonSolver(eps=1e-8))
 

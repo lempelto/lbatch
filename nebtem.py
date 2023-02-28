@@ -68,12 +68,12 @@ for img in in_traj[1:-1]:
             occupations=FermiDirac(width=0.1),
             xc='BEEF-vdW',
             eigensolver=RMMDIIS(niter=3),
-            nbands=-800,
+            nbands=-500,
             setups={'Zr': ':d,2.0'},
-            maxiter=1500,
+            maxiter=2000,
             txt="neb_relax_img%d.txt" % ( i+1 ),
             communicator=ranks,
-            mixer=Mixer(0.1, 100, weight=50.0),
+            mixer=Mixer(0.1, 10, weight=50.0),
             # convergence={'eigenstates': 1.0e-6,'density': 1.0e-5,'energy': 1.0e-5},
             poissonsolver=PoissonSolver(eps=1e-8))
 
