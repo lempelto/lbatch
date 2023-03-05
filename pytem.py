@@ -115,7 +115,7 @@ if _ir:
         ir.write_spectra(out=f"{name}_spectrum.dat")
         for i in range(3*len(_irInd)):
             ir.write_mode(n=i)
-        ir.combine()
+        if world.rank == 0: ir.combine()
     except Exception as exc:
         with paropen(f"{name}_ir.log", "a") as fil:
             fil.write(f"Failed\n{exc}")
