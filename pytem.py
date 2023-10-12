@@ -4,8 +4,8 @@ from ase.io import read, write, Trajectory
 from ase.optimize import FIRE
 from ase.parallel import paropen, world
 from ase.vibrations import Infrared
-from gpaw import GPAW, FermiDirac, RMMDIIS, PoissonSolver, Mixer
-from datetime import datetime, timedelta
+from gpaw import GPAW, FermiDirac, Davidson, PoissonSolver, MixerDif
+from datetime import datetime
 import numpy as np
 from os import remove as os_rm
 import os.path as path
@@ -45,6 +45,8 @@ if _fix:
     mask = [a.position[2] < _zfix for a in atoms]
     c= FixAtoms(mask=mask)
     atoms.set_constraint(c)
+else:
+    atoms.set_constraint()
 
 msg = ""
 f_end = "n.a."
@@ -60,13 +62,14 @@ calc = GPAW(
     xc = "BEEF-vdW",
     txt = f"{name}.txt",
     occupations = FermiDirac(width=0.1),
-    eigensolver = RMMDIIS(niter=3),
+    eigensolver = Davidson(niter=3),
     maxiter = 5000,
-    nbands = -500,
+    nbands = -1000,
     setups = {'Zr': ':d,2.0'},
-    mixer = Mixer(0.1, 10, weight=50.0),
+    mixer = MixerDif(0.1, 10, weight=50.0),
     # convergence={'eigenstates': 1.0e-6,'density': 1.0e-5,'energy': 1.0e-5},
-    poissonsolver = PoissonSolver(eps=1e-8))
+    poissonsolver = PoissonSolver(eps=1e-9),
+    spinpol=True)
 
 atoms.set_calculator(calc)
 
@@ -85,6 +88,8 @@ if _opt:
 E_tot = atoms.get_total_energy()
 E_zp = atoms.get_potential_energy()
 E_fc = atoms.get_potential_energy(force_consistent=True)
+
+m_mom = atoms.get_magnetic_moment()
 
 ##-----##
  ###-###
@@ -146,7 +151,7 @@ with paropen(colF, "a") as col:
     col.write(f"\n    Job {name}:\n")
     col.write(f"Completed at {nu.isoformat(timespec='seconds').replace('T',' at ')} ({t_D})\n")
     if f_end != "n.a.": f_end = str(round(f_end, 5)).replace('.',',')
-    col.write(f"{msg}Maximum residual force: {f_end} || Grid points: {gspacing}\n")
+    col.write(f"{msg}Maximum residual force: {f_end} || Grid points: {gspacing} || Magnetic moment: {round(m_mom, 5)}\n")
     col.write(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).replace('.',',').ljust(12)} eV\n")
     col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(E_zp, 5)).replace('.',',').ljust(12)} eV\n")
     col.write(f"{'Force-consistent:'.ljust(indent)} {str(round(E_fc, 5)).replace('.',',').ljust(12)} eV\n")
