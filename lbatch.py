@@ -108,7 +108,7 @@ def writesh(pyFile: str, cluster: str="MAHTI", np: int=0, ntsk: int=0, nnd: int=
 
 
 def writepy(name: str="job", tem: str="~/pytem.py") -> str:
-    inExt = "xyz"
+    inExt = "traj"
 
     t_name = path.abspath(path.expanduser(name))
     if t_name.__contains__("@"): t_name = t_name[:t_name.find("@")]
@@ -117,6 +117,7 @@ def writepy(name: str="job", tem: str="~/pytem.py") -> str:
         if name.__contains__("."):
             name, inExt = name.rsplit(".", maxsplit=1)
         
+        if inExt == "py": raise TypeError
         pyFile = name + ".py"
         
         pytxt = ""
