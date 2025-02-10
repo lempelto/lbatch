@@ -4,7 +4,7 @@ from ase.io import read, write, Trajectory
 from ase.optimize import FIRE
 from ase.parallel import paropen, world
 from ase.vibrations import Infrared
-from gpaw import GPAW, FermiDirac, Davidson, PoissonSolver, MixerDif
+from ase.calculators.vasp import Vasp
 from datetime import datetime
 import numpy as np
 from os import remove as os_rm
@@ -16,21 +16,27 @@ import os.path as path
 ###############
 
 name = "?name?"
-inF = f"{name}.?inExt?"
+inF = "?inFile?"
 colF = "energies.txt"
 
-_opt = True
-_fix = True
-_zfix = 9.0
+_encut = 400
+_pbc = True
+_kpts = (2,2,1)
+_kpar = 4
 
-_gpts = (64, 72, 128)
-_pbc = (True, True, False)
-_fmax = 0.005
+_vdw = 12
+
+_opt = True
+_opt_ase = False
+_ibrion = 2
+_fix = True
+_zfix = 25.0
+_fmax = 0.01
 
 _cube = False
 _wf = False
 _ir = False
-_irInd = [96, 97, 98, 99, 100, 101, 102, 103, 104]
+_irInd = []
 
 ###############
 ##########
@@ -52,29 +58,62 @@ msg = ""
 f_end = "n.a."
 
 
+if _opt_ase:
+    _ibrion = -1
 
    ###
  ###-###
 ##-----##
 
-calc = GPAW(
-    gpts = _gpts,
-    xc = "BEEF-vdW",
-    txt = f"{name}.txt",
-    occupations = FermiDirac(width=0.1),
-    eigensolver = Davidson(niter=3),
-    maxiter = 5000,
-    nbands = -1000,
-    setups = {'Zr': ':d,2.0'},
-    mixer = MixerDif(0.1, 10, weight=50.0),
-    # convergence={'eigenstates': 1.0e-6,'density': 1.0e-5,'energy': 1.0e-5},
-    poissonsolver = PoissonSolver(eps=1e-9),
-    spinpol=True)
+calc = Vasp(
+    xc = "PBE",
+    encut = _encut,             # PW cutoff energy
+    kpts = _kpts,
+    # nbands = 3000,            # Number of (empty) bands in the calculation
+    ediff = 1e-5,               # SC convergence
+    nelmin = 8,                 # Min. SCF steps
+    nelm = 400,                 # Max. SCF steps
+    istart = 0,                 # 0 for normal; 1 for restart
+    algo = "All",               # electronic optimization algorithm. 'Normal'=block Davidson; 'All' may be better for hybrids
+    prec = "Accurate",          # Sets accurate defaults. use only if lreal
+    ismear = 1,                 # Fermi smearing
+    sigma = 0.1,                # Smearing width
+    ispin = 1,                  # 2 = Spin polarized calculation
+    isym = 0,                   # Does not use symmetry
+    ivdw = _vdw,                # Grimme D3 correction
+    # Hubbard U from Materials Project:
+    # https://docs.materialsproject.org/methodology/materials-methodology/calculation-details/gga+u-calculations/hubbard-u-values
+    ldau = True,                # Use LDA+U
+    ldautype = 2,               # LDA+U according to Dudarev et al.
+    ldau_luj = {'Mo': {'L': 2, 'U': 4.4, 'J': 0},
+              'Ni': {'L': 2, 'U': 6.2, 'J': 0}},
+    maxmix = 6,                 # Maximum number of steps stored in the Broyden mixer
+    ## GEOMETRY OPTIMIZATION 
+    ibrion = _ibrion,           # Structure optimization: ibrion=1-3
+    ediffg = -_fmax,            # Criterion for GO convergence. Positive: energy, negative: force
+    ## PROJECTIONS / PAWS 
+    lreal = "Auto",             # Real-space determination of projections
+    setups = {'Mo': '_sv_GW',
+              'S': '_GW',
+              'Ag': '_GW',
+              'Ni': '_sv_GW',
+              'H': '_GW',
+              'O': '_GW'},
+    lasph = True,               # Non-spherical contributions in PAW spheres
+    ## PARALLELIZATION 
+    # npar = 4,                 # Number of parallel bands
+    kpar = _kpar,               # k-point parallelization
+    ## OUTPUT 
+    lorbit = 11,                # Saves PROCAR file with PDOS
+    lcharg = True,              # Saves files with charge densities
+    )
 
-atoms.set_calculator(calc)
 
 
-if _opt:
+atoms.calc = calc
+
+
+if _opt and _opt_ase:
     traj = Trajectory(f"{name}.traj", "a", atoms)
     
     dyn = FIRE(atoms, logfile=f"{name}.log")
