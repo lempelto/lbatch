@@ -36,8 +36,9 @@ def writesh(pyFile: str, cluster: str="", dft: str="", np: int=0, ntsk: int=0, n
         if _gpaw:
             modle = "module load gpaw/20.10.0-omp\n\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\nexport OMP_PLACES=cores"
         elif _vasp:
-            modle = "module load gpaw\nmodule load vasp/6.4.3"
-            modle += "\nexport ASE_VASP_COMMAND=\"srun vasp_std\"\nexport VASP_PP_PATH=\"/scratch/project_2012891/\""
+            modle = "module load gpaw\nmodule load vasp/6.4.3\n"
+            modle += "export ASE_VASP_COMMAND=\"vasp_std\"\n"
+            modle += "export VASP_PP_PATH=\"/scratch/project_2012891/\""
         if partition == "": partition = "medium"
         if timelimit == "": timelimit = "36:00:00"
         csc = True
@@ -46,8 +47,9 @@ def writesh(pyFile: str, cluster: str="", dft: str="", np: int=0, ntsk: int=0, n
         if _gpaw:
             modle = "module load mpich/3.3.1\nmodule load python-env\nmodule load gpaw"
         elif _vasp:
-            modle = "module load python-env\nmodule load gpaw\nmodule load vasp/6.4.3"
-            modle += "\nexport ASE_VASP_COMMAND=\"srun vasp_std\"\nexport VASP_PP_PATH=\"/scratch/project_2012891/\""
+            modle = "module load gpaw\nmodule load vasp/6.4.3\n"
+            modle += "export ASE_VASP_COMMAND=\"vasp_std\"\n"
+            modle += "export VASP_PP_PATH=\"/scratch/project_2012891/\""
         if mpp == 0: mpp = 8
         if partition == "": partition = "large"
         if timelimit == "": timelimit = "72:00:00"
@@ -98,7 +100,7 @@ def writesh(pyFile: str, cluster: str="", dft: str="", np: int=0, ntsk: int=0, n
         if _gpaw:
             batch += f"srun gpaw-python {OpyFile}"
         elif _vasp:
-            batch += f"srun --external-launcher --overlap python3 {OpyFile}"
+            batch += f"srun python3 {OpyFile}"
     else:
         batch += f"mpirun -np {np} gpaw-python {OpyFile}"
 

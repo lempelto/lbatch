@@ -20,6 +20,7 @@ inF = "?inFile?"
 colF = "energies.txt"
 
 _encut = 400
+_nelm = 400
 _pbc = True
 _kpts = (2,2,1)
 _kpar = 4
@@ -30,10 +31,11 @@ _opt = True
 _opt_ase = False
 _ibrion = 2
 _fix = True
-_zfix = 25.0
+_zfix = 21.0
 _fmax = 0.01
+_nelm_opt = 100
 
-_cube = False
+_cube = True
 _wf = False
 _ir = False
 _irInd = []
@@ -58,8 +60,15 @@ msg = ""
 f_end = "n.a."
 
 
-if _opt_ase:
+if _opt:
+    _nelm = _nelm_opt
+if _opt_ase or not _opt:
     _ibrion = -1
+
+if _cube:
+    _lcharg = True
+else:
+    _lcharg = False
 
    ###
  ###-###
@@ -70,11 +79,11 @@ calc = Vasp(
     encut = _encut,             # PW cutoff energy
     kpts = _kpts,
     # nbands = 3000,            # Number of (empty) bands in the calculation
-    ediff = 1e-5,               # SC convergence
+    ediff = 5e-5,               # SC convergence
     nelmin = 8,                 # Min. SCF steps
-    nelm = 400,                 # Max. SCF steps
+    nelm = _nelm,               # Max. SCF steps
     istart = 0,                 # 0 for normal; 1 for restart
-    algo = "All",               # electronic optimization algorithm. 'Normal'=block Davidson; 'All' may be better for hybrids
+    algo = "Normal",            # electronic optimization algorithm. 'Normal'=block Davidson; 'All' may be better for hybrids
     prec = "Accurate",          # Sets accurate defaults. use only if lreal
     ismear = 1,                 # Fermi smearing
     sigma = 0.1,                # Smearing width
@@ -87,9 +96,10 @@ calc = Vasp(
     ldautype = 2,               # LDA+U according to Dudarev et al.
     ldau_luj = {'Mo': {'L': 2, 'U': 4.4, 'J': 0},
               'Ni': {'L': 2, 'U': 6.2, 'J': 0}},
-    maxmix = 6,                 # Maximum number of steps stored in the Broyden mixer
+    lmaxmix = 6,                # Maximum number of steps stored in the Broyden mixer
     ## GEOMETRY OPTIMIZATION 
     ibrion = _ibrion,           # Structure optimization: ibrion=1-3
+    nsw = 500,                  # Max number of relaxation steps
     ediffg = -_fmax,            # Criterion for GO convergence. Positive: energy, negative: force
     ## PROJECTIONS / PAWS 
     lreal = "Auto",             # Real-space determination of projections
@@ -104,8 +114,9 @@ calc = Vasp(
     # npar = 4,                 # Number of parallel bands
     kpar = _kpar,               # k-point parallelization
     ## OUTPUT 
+    txt = f"{name}.out",
     lorbit = 11,                # Saves PROCAR file with PDOS
-    lcharg = True,              # Saves files with charge densities
+    lcharg = _lcharg,           # Saves files with charge densities
     )
 
 
@@ -137,12 +148,6 @@ m_mom = atoms.get_magnetic_moment()
 
 
 if _wf: calc.write(filename=f"{name}.gpw", mode="all")
-
-
-if _cube:
-    from ase.units import Bohr
-    density = calc.get_all_electron_density() * Bohr**3
-    write(f"{name}.cube", atoms, data=density)
 
 
 if _ir:
@@ -182,15 +187,13 @@ if t_hour > 0: t_D += f"{t_hour} h, "
 if t_min > 0 or t_hour > 0: t_D += f"{t_min} min, "
 t_D += f"{t_sec} s"
 
-gspacing = calc.get_number_of_grid_points()
-
 with paropen(colF, "a") as col:
     indent = 18
 
     col.write(f"\n    Job {name}:\n")
     col.write(f"Completed at {nu.isoformat(timespec='seconds').replace('T',' at ')} ({t_D})\n")
     if f_end != "n.a.": f_end = str(round(f_end, 5)).replace('.',',')
-    col.write(f"{msg}Maximum residual force: {f_end} || Grid points: {gspacing} || Magnetic moment: {round(m_mom, 5)}\n")
+    col.write(f"{msg}Maximum residual force: {f_end} || Magnetic moment: {round(m_mom, 5)}\n")
     col.write(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).replace('.',',').ljust(12)} eV\n")
     col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(E_zp, 5)).replace('.',',').ljust(12)} eV\n")
     col.write(f"{'Force-consistent:'.ljust(indent)} {str(round(E_fc, 5)).replace('.',',').ljust(12)} eV\n")
