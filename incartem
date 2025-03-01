@@ -1,0 +1,42 @@
+INCAR created by lbatch
+
+# BASIC PARAMETERS
+ ALGO       = Normal
+ GGA        = PE
+ ENCUT      = 400.
+ PREC       = Accurate
+ LASPH      = .TRUE.
+ LREAL      = Auto
+ IVDW       = 12
+
+# ELECTRONIC PARAMETERS
+ EDIFF      = 1.0e-05
+ ISMEAR     = 0
+ SIGMA      = 0.05
+ ISPIN      = 1
+ NELMIN     = 8
+ NELM       = 200
+ NELMDL     = -8
+ ISYM       = 0
+
+# STRUCTURAL RELAXATION
+ IBRION     = 2
+ EDIFFG     = -1.00e-02
+ NSW        = 500
+
+# LDA+U PARAMETERS
+ LDAU       = .TRUE.
+ LDAUTYPE   = 2
+ LDAUL      = 2 -1 2 -1 -1
+ LDAUU      = 6.20 0.00 4.40 0.00 0.00
+ LDAUJ      = 0.00 0.00 0.00 0.00 0.00
+ LMAXMIX    = 6
+
+# PARALLELIZATION
+ # KPAR       = 4
+ NCORE      = 16
+
+# OUTPUT
+ LORBIT     = 11
+ LCHARG     = .TRUE.
+ LWAVEH5    = .TRUE.
