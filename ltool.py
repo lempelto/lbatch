@@ -1,6 +1,4 @@
 
-from ase.io import read, write
-from ase.visualize import view
 import argparse
 import numpy as np
 import os
@@ -37,6 +35,8 @@ def print_results(results: dict) -> None:
     # print(f"\n{'='*100}\n")
 
 def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
+    from ase.io import read
+
     if args:
         filename = args.file
         open_gui = args.o
@@ -53,6 +53,7 @@ def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
     print_results(results=results)
 
     if open_gui:
+        from ase.visualize import view
         view(atoms)
 
 def write_potcar(filename: str=None, args=None):
@@ -84,6 +85,8 @@ def write_potcar(filename: str=None, args=None):
                     pot_stream.write(line)
 
 def nebtool(filename: str=None, open_gui: bool=False, nimages: int=None, args=None) -> None:
+    from ase.io import read
+
     if args:
         filename = args.file
         open_gui = args.o
@@ -126,11 +129,14 @@ def nebtool(filename: str=None, open_gui: bool=False, nimages: int=None, args=No
     print(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_final, 5)).replace('.',',').ljust(12)} eV")
     print(f"{'='*100}\n")
 
-    if open_gui: view(TS)
+    if open_gui:     
+        from ase.visualize import view
+        view(TS)
 
 def write_poscar(atoms, directory='./') -> None:
     from ase.calculators.vasp import Vasp
     from ase.io.vasp import write_vasp
+
     atoms.calc = calc = Vasp(setups=by_element, xc='PBE')
 
     atoms.calc.initialize(atoms)
@@ -141,6 +147,8 @@ def write_poscar(atoms, directory='./') -> None:
 
 
 def auto_convert(filename: str=None, targetext: str='traj', args=None) -> None:
+    from ase.io import read, write
+
     if args:
         filename = args.file
 

@@ -33,7 +33,7 @@ vasp_fast = {
     "LWAVEH5": True
 }
 
-def write_sh(pyFile: str, cluster: str="", dft: str="", np: int=0, ntsk: int=0, nnd: int=0, ppnd: int=0, tskpnd: int=0, pptsk: int=1,\
+def write_sh(pyFile: str="", run_cmd: str="", cluster: str="", dft: str="", np: int=0, ntsk: int=0, nnd: int=0, ppnd: int=0, tskpnd: int=0, pptsk: int=1,\
     mpp: int=0, e_notif: str="", account: str="", partition: str="", timelimit: str="") -> str:
     """Creates a Slurm script file that runs the specified script with gpaw-python
     pyFile: Python script to run. Required
@@ -317,12 +317,14 @@ if __name__ == "__main__":
             _fil = write_vasp(inFile=fil)
         else:
             raise NotImplemented
+    else:
+        _fil = fil
 
     fil = path.abspath(_fil)
 
 
     if path.exists(fil):
-        sph = write_sh(runcmd=run_cmd, cluster=args.c, dft=dft,
+        sph = write_sh(run_cmd=run_cmd, pyFile=fil, cluster=args.c, dft=dft,
                        e_notif=args.email, account=args.a, partition=args.part,
                        np=args.p, nnd=args.n, ppnd=args.ppnd, mpp=args.m,
                        timelimit=timelimit)
