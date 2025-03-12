@@ -1,11 +1,12 @@
 
 import argparse
-import numpy as np
 import os
-from assumed_paws import by_element
+from lkit_vasp_parameters import paws_by_element
 
 
 def print_results(results: dict) -> None:
+    import numpy as np
+    
     if 'forces' in results:
         forces = results['forces']
         f_end = round(np.linalg.norm(forces, axis=1).max(), 3)
@@ -34,6 +35,7 @@ def print_results(results: dict) -> None:
     if E_fc: print(f"{'Force-consistent energy:'.ljust(indent)} {str(round(E_fc, 5)).ljust(12)} eV\n")
     # print(f"\n{'='*100}\n")
 
+
 def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
     from ase.io import read
 
@@ -56,11 +58,25 @@ def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
         from ase.visualize import view
         view(atoms)
 
-def write_potcar(filename: str=None, args=None):
-    if args:
-        filename = args.file
 
-    poscar = os.path.abspath(filename)
+def get_natoms_poscar(poscar: str=None):
+    """Reads POSCAR (or compatible) file and returns two lists: atom types in order and their counts in order
+       eg. [H, O], [2, 1]"""
+
+    with open(poscar, 'r') as pos_stream:
+        head = [pos_stream.readline() for i in range(5)]
+        atomtypes = pos_stream.readline().split()
+        _natoms = pos_stream.readline().split()
+    natoms = [int(i) for i in _natoms]
+
+    return atomtypes, natoms
+
+
+def write_potcar(poscar: str=None, args=None):
+    if args:
+        poscar = args.file
+
+    poscar = os.path.abspath(poscar)
     wd = os.path.dirname(poscar)
     potcar = os.path.join(wd, 'POTCAR')
 
@@ -68,21 +84,19 @@ def write_potcar(filename: str=None, args=None):
     pot_category = 'potpaw_PBE'
     default_pot_type = '_GW'
 
-    atomtypes = []
-    with open(poscar, 'r') as pos_stream:
-        head = [pos_stream.readline() for i in range(5)]
-        atomtypes = pos_stream.readline().split()
+    atomtypes, _ = get_natoms_poscar(poscar=poscar)
     
     with open(potcar, 'w') as pot_stream:
         for at in atomtypes:
-            if at in by_element:
-                pot_type = by_element[at]
+            if at in paws_by_element:
+                pot_type = paws_by_element[at]
             else:
                 pot_type = default_pot_type
             paw_potcar = os.path.join(pp_path, pot_category, at+pot_type, 'POTCAR')
             with open(paw_potcar, 'r') as paw_stream:
                 for line in paw_stream:
                     pot_stream.write(line)
+
 
 def nebtool(filename: str=None, open_gui: bool=False, nimages: int=None, args=None) -> None:
     from ase.io import read
@@ -133,14 +147,15 @@ def nebtool(filename: str=None, open_gui: bool=False, nimages: int=None, args=No
         from ase.visualize import view
         view(TS)
 
+
 def write_poscar(atoms, directory='./') -> None:
     from ase.calculators.vasp import Vasp
-    from ase.io.vasp import write_vasp
+    from ase.io.vasp import write_vasp as ase_write_vasp
 
-    atoms.calc = calc = Vasp(setups=by_element, xc='PBE')
+    atoms.calc = calc = Vasp(setups=paws_by_element, xc='PBE')
 
     atoms.calc.initialize(atoms)
-    write_vasp(os.path.join(directory, "POSCAR"),
+    ase_write_vasp(os.path.join(directory, "POSCAR"),
                calc.atoms_sorted,
                symbol_count=calc.symbol_count,
                ignore_constraints=calc.input_params['ignore_constraints'])
