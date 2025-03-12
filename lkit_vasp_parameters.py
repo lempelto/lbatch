@@ -1,0 +1,118 @@
+
+paws_by_element = {
+    'Ni': '_sv_GW',
+    'Mo': '_sv_GW',
+    'Ag': '_GW',
+    'S': '_GW',
+    'C': '_GW',
+    'N': '_GW',
+    'H': '_GW',
+    'O': '_GW',
+}
+
+U_by_element = {
+    'Ni': {"L": 2, "U": 10.71},
+    'Mo': {"L": 2, "U": 4.40},
+}
+
+class incar_parameters:
+    """Class containing default values selected to work for me"""
+
+    # The program would have to determine and add:
+    #     KPAR
+    #     LDAU parameters
+    #     MAGMOM
+    vasp_fast_opt_nospin_gam = {
+        "ALGO": "Normal",
+        "ENCUT": 400.,
+        "GGA": "PE",
+        "IVDW": 12,
+        "LASPH": True,
+        "LREAL": "Auto",
+        "PREC": "Accurate",
+        "EDIFF": 1.0e-06,
+        "ISMEAR": 0,
+        "SIGMA": 0.05,
+        "ISPIN": 1,
+        "ISYM": 0,
+        "NELM": 150,
+        "NELMDL": -8,
+        "NELMIN": 8,
+        "EDIFFG": -1.0e-02,
+        "IBRION": 2,
+        "NSW": 500,
+        "LDAU": True,
+        "LDAUTYPE": 2,
+        "LDAUL": "-1 2 2 -1 -1",
+        "LDAUU": "0.00 4.40 6.20 0.00 0.00",
+        "LDAUJ": "0.00 0.00 0.00 0.00 0.00",
+        "LMAXMIX": 6,
+        "NCORE": 16,
+        "LCHARG": True,
+        "LORBIT": 11,
+        "NEDOS": 501,
+    }
+
+    vasp_fast_opt_spin_gam = {
+        "ALGO": "Normal",
+        "ENCUT": 400.,
+        "GGA": "PE",
+        "IVDW": 12,
+        "LASPH": True,
+        "LREAL": "Auto",
+        "PREC": "Accurate",
+        "EDIFF": 1.0e-06,
+        "ISMEAR": 0,
+        "SIGMA": 0.05,
+        "ISPIN": 2,
+        "MAGMOM": None,
+        "ISYM": 0,
+        "NELM": 150,
+        "NELMDL": -8,
+        "NELMIN": 8,
+        "EDIFFG": -1.0e-02,
+        "IBRION": 2,
+        "NSW": 500,
+        "LDAU": True,
+        "LDAUTYPE": 2,
+        "LDAUL": "-1 2 2 -1 -1",
+        "LDAUU": "0.00 4.40 6.20 0.00 0.00",
+        "LDAUJ": "0.00 0.00 0.00 0.00 0.00",
+        "LMAXMIX": 6,
+        "NCORE": 16,
+        "LCHARG": True,
+        "LORBIT": 11,
+        "NEDOS": 501,
+    }
+
+    vasp_accurate_opt_spin_gam = {
+        "ALGO": "Normal",
+        "ENCUT": 500.,
+        "GGA": "PE",
+        "IVDW": 12,
+        "LASPH": True,
+        "LREAL": "Auto",
+        "PREC": "Accurate",
+        "EDIFF": 1.0e-06,
+        "ISMEAR": 0,
+        "SIGMA": 0.05,
+        "ISPIN": 2,
+        "MAGMOM": None,
+        "ISYM": 0,
+        "NELM": 150,
+        "NELMDL": -8,
+        "NELMIN": 8,
+        "EDIFFG": -1.0e-02,
+        "IBRION": 2,
+        "NSW": 500,
+        "LDAU": True,
+        "LDAUTYPE": 2,
+        "LDAUL": "-1 2 2 -1 -1",
+        "LDAUU": "0.00 4.40 6.20 0.00 0.00",
+        "LDAUJ": "0.00 0.00 0.00 0.00 0.00",
+        "LMAXMIX": 6,
+        "NCORE": 16,
+        "LCHARG": True,
+        "LORBIT": 11,
+        "NEDOS": 501,
+    }
