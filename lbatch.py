@@ -464,6 +464,7 @@ if __name__ == "__main__":
     run_cmd = ""
 
     if args.neb:
+        use_ase = True
         pytem = nebtem
     elif dft == "GPAW":
         use_ase = True
@@ -490,7 +491,7 @@ if __name__ == "__main__":
             _fil = write_vasp(inFile=fil, incartem=incartem)
             jobname = "vasp"
         else:
-            raise NotImplemented
+            raise NotImplementedError
     else:
         _fil = fil
 

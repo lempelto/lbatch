@@ -1,42 +1,35 @@
 
 import argparse
 import os
-from lkit_vasp_parameters import paws_by_element
+from lkit_vasp_parameters import vasp_pot_collections
 
 
 def print_results(results: dict) -> None:
+    """Formats and prints a card showing the results in 'results'."""
     import numpy as np
-    
+    f_end = None
+    E_tot = None
+    E_fc = None
+    magmom = None
+
     if 'forces' in results:
         forces = results['forces']
         f_end = round(np.linalg.norm(forces, axis=1).max(), 3)
-    else:
-        f_end = None
-
     if 'energy' in results:
         E_tot = results['energy']
-    else: 
-        E_tot = None
-
     if 'free_energy' in results:
         E_fc = results['free_energy']
-    else:
-        E_fc = None
-
     if 'magmom' in results:
         magmom = round(results['magmom'], 3)
-    else: magmom = None
 
     indent = 18
-    print(f"\n==")
-    if f_end or magmom: print(f"Maximum residual force: {f_end} eV/Å | Magnetic moment: {magmom}\n")
-    # Initial structure
-    if E_tot: print(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).ljust(12)} eV")
-    if E_fc: print(f"{'Force-consistent energy:'.ljust(indent)} {str(round(E_fc, 5)).ljust(12)} eV\n")
-    # print(f"\n{'='*100}\n")
+    if f_end or magmom: print(f"\n    Maximum residual force: {f_end} eV/Å | Magnetic moment: {magmom}")
+    if E_tot: print(f"{'    Total energy:'.ljust(indent)} {str(round(E_tot, 5)).ljust(12)} eV")
+    if E_fc: print(f"{'    Force-consistent energy:'.ljust(indent)} {str(round(E_fc, 5)).ljust(12)} eV\n")
 
 
 def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
+    """Opens an output file (using ASE) and prints a summary of its results. Optionally opens the structure in the ASE gui"""
     from ase.io import read
 
     if args:
@@ -59,7 +52,7 @@ def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
         view(atoms)
 
 
-def get_natoms_poscar(poscar: str=None):
+def get_natoms_poscar(poscar: str=None) -> tuple[list]:
     """Reads POSCAR (or compatible) file and returns two lists: atom types in order and their counts in order
        eg. [H, O], [2, 1]"""
 
@@ -72,9 +65,10 @@ def get_natoms_poscar(poscar: str=None):
     return atomtypes, natoms
 
 
-def write_potcar(poscar: str=None, args=None):
+def write_potcar(poscar: str=None, potset: str='VASP', args=None) -> None:
     if args:
         poscar = args.file
+        potset = args.p
 
     poscar = os.path.abspath(poscar)
     wd = os.path.dirname(poscar)
@@ -82,17 +76,19 @@ def write_potcar(poscar: str=None, args=None):
 
     pp_path = os.environ["VASP_PP_PATH"]
     pot_category = 'potpaw_PBE'
-    default_pot_type = '_GW'
+    pot_type = vasp_pot_collections[potset.upper()]
 
     atomtypes, _ = get_natoms_poscar(poscar=poscar)
     
     with open(potcar, 'w') as pot_stream:
         for at in atomtypes:
-            if at in paws_by_element:
-                pot_type = paws_by_element[at]
+            if at in pot_type:
+                pot_suffix = pot_type[at]
+            elif at in vasp_pot_collections['VASP']:
+                pot_suffix = vasp_pot_collections['VASP'][at]
             else:
-                pot_type = default_pot_type
-            paw_potcar = os.path.join(pp_path, pot_category, at+pot_type, 'POTCAR')
+                pot_suffix = ''
+            paw_potcar = os.path.join(pp_path, pot_category, at+pot_suffix, 'POTCAR')
             with open(paw_potcar, 'r') as paw_stream:
                 for line in paw_stream:
                     pot_stream.write(line)
@@ -152,7 +148,7 @@ def write_poscar(atoms, directory='./') -> None:
     from ase.calculators.vasp import Vasp
     from ase.io.vasp import write_vasp as ase_write_vasp
 
-    atoms.calc = calc = Vasp(setups=paws_by_element, xc='PBE')
+    atoms.calc = calc = Vasp(setups=vasp_pot_collections['VASP'], xc='PBE')
 
     atoms.calc.initialize(atoms)
     ase_write_vasp(os.path.join(directory, "POSCAR"),
@@ -161,18 +157,24 @@ def write_poscar(atoms, directory='./') -> None:
                ignore_constraints=calc.input_params['ignore_constraints'])
 
 
-def auto_convert(filename: str=None, targetext: str='traj', args=None) -> None:
+def auto_convert(filepath: str=None, targetext: str='traj', args=None) -> None:
     from ase.io import read, write
 
     if args:
-        filename = args.file
+        filepath = args.file
 
-    filename = os.path.abspath(filename)
-    directory, file = os.path.split(filename)
-    atoms = read(f"{filename}@:")
-    _, ext = os.path.splitext(file)
-    if file in {'POSCAR', 'CONTCAR', 'OUTCAR', 'XDATCAR'}:
-        write(os.path.join(directory, f"coordinates.{targetext}"), atoms)
+    filepath = os.path.abspath(filepath)
+    directory, filename = os.path.split(filepath)
+    if not filepath.__contains__("@"):
+        filepath += "@:"
+    atoms = read(filepath)
+    _, ext = os.path.splitext(filename)
+    
+    if filename in {'POSCAR', 'CONTCAR', 'OUTCAR', 'XDATCAR'}:
+        target = f"coordinates.{targetext}"
+        target = os.path.join(directory, target)
+        hasPrevious = os.path.exists(target)
+        write(target, atoms, append=hasPrevious)
     elif ext in {'.xyz', '.traj'}:
         write_poscar(atoms=atoms[-1], directory=directory)
 
@@ -182,7 +184,6 @@ if __name__ == "__main__":
     arpar = argparse.ArgumentParser(description='Useful tools for dealing with DFT input / output')
     parsers = arpar.add_subparsers(description='Valid commands')
     arpar.add_argument("file", type=str, help="File")
-#    arpar.add_argument("function", type=str, choices=["show", "potcar", "convert"], help="Command")
     
     par_show = parsers.add_parser('show')
     par_show.add_argument('-o', action="store_true", help="Open in GUI")
@@ -193,7 +194,8 @@ if __name__ == "__main__":
     par_neb.add_argument("-o", action="store_true", help="Open the transition state in ASE")
     par_neb.set_defaults(function=nebtool)
 
-    par_pot = parsers.add_parser('potcar')
+    par_pot = parsers.add_parser('pot')
+    par_pot.add_argument("-p", type=str, help="Select set of PAWs to use. Currently 'VASP', 'MIN' or 'GW'")
     par_pot.set_defaults(function=write_potcar)
 
     par_convert = parsers.add_parser('convert')
