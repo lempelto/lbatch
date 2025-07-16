@@ -52,7 +52,7 @@ def show_results(filename: str=None, open_gui: bool=False, args=None) -> None:
         view(atoms)
 
 
-def get_natoms_poscar(poscar: str=None) -> tuple[list]:
+def get_natoms_poscar(poscar: str=None) -> tuple:
     """Reads POSCAR (or compatible) file and returns two lists: atom types in order and their counts in order
        eg. [H, O], [2, 1]"""
 
