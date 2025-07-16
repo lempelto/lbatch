@@ -195,7 +195,7 @@ if __name__ == "__main__":
     par_neb.set_defaults(function=nebtool)
 
     par_pot = parsers.add_parser('pot')
-    par_pot.add_argument("-p", type=str, help="Select set of PAWs to use. Currently 'VASP', 'MIN' or 'GW'")
+    par_pot.add_argument("-p", type=str, default='GW', help="Select set of PAWs to use. Currently 'VASP', 'MIN' or 'GW'. Default: 'GW'")
     par_pot.set_defaults(function=write_potcar)
 
     par_convert = parsers.add_parser('convert')

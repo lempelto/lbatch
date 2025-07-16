@@ -1,9 +1,8 @@
+
 import os.path as path
 import subprocess
 import ltool
-from lkit_vasp_parameters import incar_parameters as in_par
-from lkit_vasp_parameters import U_by_element
-
+from config import config
 
 class sh_writer:
     def __init__(self, dft: str, cluster: str="Mahti"):
@@ -131,7 +130,7 @@ class sh_writer:
             parameters = self.get_slurm_parameters()
         self.slurm = parameters
 
-    def get_modules(self, dft: str=None, cluster: str=None, vasp_gam: bool=False) -> str:
+    def get_modules(self, dft: str=None, omp: bool=True, cluster: str=None, vasp_gam: bool=False) -> str:
         """Returns a string containing the commands to load the necessary modules,
         depending on the system and code used."""
         if dft == None:
@@ -145,38 +144,41 @@ class sh_writer:
 
         if cluster == "MAHTI":
             if dft == "GPAW":
-                modle  = "module load gpaw/20.10.0-omp\n\n"
-                modle += "export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK\n"
-                modle += "export OMP_PLACES=cores"
-            elif dft == "VASP":
-                modle = "module load vasp/6.4.3\n\n"
-                if self.ase:
-                    modle += "module load gpaw\n"
-                    if vasp_gam:
-                        modle += "export ASE_VASP_COMMAND=\"vasp_gam\"\n"
-                    else:
-                        modle += "export ASE_VASP_COMMAND=\"vasp_std\"\n"
-                    modle += "export VASP_PP_PATH=\"/scratch/project_2012891/\""
-        elif cluster == "PUHTI":
-            if dft == "GPAW":
-                modle  = "module load mpich/3.3.1\n"
-                modle += "module load python-env\n"
-                modle += "module load gpaw"
+                modle  = "module load gpaw/25.1.0-omp\n"
+                omp = True
             elif dft == "VASP":
                 modle = "module load vasp/6.4.3\n"
                 if self.ase:
-                    modle += "module load gpaw\n"
+                    modle += "\nmodule load gpaw"
                     if vasp_gam:
-                        modle += "export ASE_VASP_COMMAND=\"vasp_gam\"\n"
+                        modle += "\nexport ASE_VASP_COMMAND=\"vasp_gam\"\n"
                     else:
-                        modle += "export ASE_VASP_COMMAND=\"vasp_std\"\n"
-                    modle += "export VASP_PP_PATH=\"/scratch/project_2012891/\""
+                        modle += "\nexport ASE_VASP_COMMAND=\"vasp_std\""
+                    modle += "\nexport VASP_PP_PATH=\"/scratch/project_2012891/\""
+        elif cluster == "PUHTI":
+            if dft == "GPAW":
+                modle  = "module load mpich/3.3.1"
+                modle += "\nmodule load python-env"
+                modle += "\nmodule load gpaw\n"
+            elif dft == "VASP":
+                modle = "module load vasp/6.4.3\n"
+                if self.ase:
+                    modle += "\nmodule load gpaw\n"
+                    if vasp_gam:
+                        modle += "\nexport ASE_VASP_COMMAND=\"vasp_gam\""
+                    else:
+                        modle += "\nexport ASE_VASP_COMMAND=\"vasp_std\""
+                    modle += "\nexport VASP_PP_PATH=\"/scratch/project_2012891/\""
         elif cluster == "OBERON":
             modle = "module load gpaw/1.5.1-gcc"
         elif cluster == "PUCK":
             modle = "module load puck_gpaw/1.5.1-ase3.17.0-gcc"
 
-        return modle
+        if omp:
+            modle += "\nexport OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK"
+            modle += "\nexport OMP_PLACES=cores"
+
+        return modle + "\n"
 
     def set_modules(self, modules: str=None) -> None:
         if modules == None:
@@ -263,6 +265,7 @@ def write_sh(pyFile: str="", cluster: str="", dft: str="", account: str="", part
     sh.set_slurm_parameters(parameters=s_params)
 
     modules = sh.get_modules(dft=dft,
+                             omp=True,
                              cluster=cluster,
                              vasp_gam=kwargs["gamma_exec"])
     sh.set_modules(modules=modules)
@@ -278,7 +281,7 @@ def write_sh(pyFile: str="", cluster: str="", dft: str="", account: str="", part
     return shFile
 
 
-def write_py(inFile: str="", dft: str="", tem: str="~/pytem.py") -> str:
+def write_py(inFile: str="", dft: str="", template: str="./pytem.py") -> str:
     """Writes Python input script to run a job with ASE"""
     inExt = ""
 
@@ -300,9 +303,9 @@ def write_py(inFile: str="", dft: str="", tem: str="~/pytem.py") -> str:
         pyFile = name + ".py"
 
         pytxt = ""
-        tem = path.abspath(path.expanduser(tem))
+        template = path.abspath(path.expanduser(template))
         try:
-            with open(tem, "r") as puh:
+            with open(template, "r") as puh:
                 for l in puh:
                     if l.__contains__("?name?"):
                         l = l.replace("?name?", str(name))
@@ -310,7 +313,7 @@ def write_py(inFile: str="", dft: str="", tem: str="~/pytem.py") -> str:
                         l = l.replace("?inFile?", str(inFile))
                     pytxt = pytxt + l
         except FileNotFoundError:
-            pytxt = f"The template file was not found in {tem}"
+            pytxt = f"The template file was not found in {template}"
 
         with open(pyFile,"w") as w:
             w.write(f"{pytxt}\n")
@@ -323,12 +326,14 @@ def write_py(inFile: str="", dft: str="", tem: str="~/pytem.py") -> str:
 def write_vasp(inFile: str="", incartem: str=None) -> str:
     """Writes input files for a Vasp calculation
     inFile: file containing atomic coordinates"""
+    from lkit_vasp_parameters import incar_recipes
+    from lkit_vasp_parameters import vasp_U_by_element
 
     wd, posFileName = path.split(path.abspath(inFile))
     write_potcar = not path.exists(path.join(wd, "POTCAR"))
 
     # Choose the correct set of defaults
-    param = in_par.vasp_fast_opt_nospin_gam
+    param = incar_recipes['LKIT']
 
     # Figure out which atoms are involved and in which order (could also call ltool to create POTCAR)
     if posFileName not in {"POSCAR", "CONTCAR"}:
@@ -351,9 +356,9 @@ def write_vasp(inFile: str="", incartem: str=None) -> str:
         ldauu = ""
         ldaul = ""
         for a in atomtypes:
-            if a in U_by_element:
-                ldaul = " ".join((ldaul, str(U_by_element[a]["L"])))
-                ldauu = " ".join((ldauu, str(U_by_element[a]["U"])))
+            if a in vasp_U_by_element:
+                ldaul = " ".join((ldaul, str(vasp_U_by_element[a]["L"])))
+                ldauu = " ".join((ldauu, str(vasp_U_by_element[a]["U"])))
             else:
                 ldaul = " ".join((ldaul, str(-1)))
                 ldauu = " ".join((ldauu, str(0.0)))
@@ -398,10 +403,10 @@ if __name__ == "__main__":
     account = "project_2012891"
     dft = "VASP"
     lbfolder = path.dirname(path.realpath(__file__))
-    gtem = path.abspath(lbfolder + "/gpaw_tem.py")
-    vtem = path.abspath(lbfolder + "/vasp_tem.py")
-    nebtem = path.abspath(lbfolder + "/nebtem.py")
-    incartem = path.abspath(lbfolder + "/incartem")
+    gtem = path.abspath(path.join(lbfolder, config.templates["gtem"]))
+    vtem = path.abspath(path.join(lbfolder, config.templates["vtem"]))
+    nebtem = path.abspath(path.join(lbfolder, config.templates["nebtem"]))
+    incartem = path.abspath(path.join(lbfolder, config.templates["incartem"]))
     
     arpar = argparse.ArgumentParser(prog="LBatch", 
                                     description="Creates the necessary files to run a DFT calculation through SLURM")
@@ -479,13 +484,13 @@ if __name__ == "__main__":
     if lazy:
         if use_ase:
             if verbose: print("Python file:")
-            _fil = write_py(inFile=fil, dft=dft, tem=pytem)
+            _fil = write_py(inFile=fil, dft=dft, template=pytem)
             if _fil == "_na":
                 print(f"No file \"{fil}\" found")
             elif verbose:
                 print(_fil)
-                print("It is recommended that you check the parameters before \
-                      submitting")
+                print("It is recommended that you check the parameters before "+ \
+                      "submitting")
             run_cmd += fil
         elif dft == "VASP":
             _fil = write_vasp(inFile=fil, incartem=incartem)
