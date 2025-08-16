@@ -24,6 +24,7 @@ _fix = True
 _zfix = 9.0
 
 _h = .2
+_kpts = (1, 1, 1)
 _charge = 0
 _pbc = (True, True, False)
 _fmax = 0.005
@@ -63,6 +64,7 @@ calc = GPAW(
     spinpol     = True,
     charge      = _charge,
     h           = _h,
+    kpts        = {'size': _kpts, 'gamma': True},
     xc          = 'BEEF-vdW',
     txt         = f"{name}.txt",
     occupations = FermiDirac(width=0.1),
