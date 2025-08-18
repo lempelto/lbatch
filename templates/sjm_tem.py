@@ -117,7 +117,7 @@ calc = SJM(
     # eigensolver = Davidson(niter=3),
     maxiter     = 2000,
     # nbands      = -500,
-    setups      = {'Ni': ':d,5.5'},
+    setups      = {'Ni': ':d,9.'},
     # mixer       = MixerDif(0.1, 10, weight=50.0),
     # convergence = {'energy': 5.e-4, 'density': 1.e-4, 'eigenstates': 4.e-8, 'bands': 'occupied'},
     sj          = sj,
