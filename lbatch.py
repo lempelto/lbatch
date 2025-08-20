@@ -1,5 +1,6 @@
 
 import os.path as path
+import sys
 import subprocess
 import ltool
 from config import config
@@ -28,7 +29,7 @@ class ShWriter:
         self.module_lines: str = None
         self.procedure: str = None
 
-    def get_slurm_lines(self) -> list[str]:
+    def get_slurm_lines(self):
         assert self.params != None, "SLURM parameters not set"
         spar  = [
             f"#!/bin/bash -l\n#SBATCH -J {self.job_name}",
@@ -99,7 +100,8 @@ class ShWriter:
         """
         if ppnd <= 8:
             print("The number of processors per node is very low.",
-                  "Check that everything is as you wanted.")
+                  "Check that everything is as you wanted.",
+                  file=sys.stderr)
 
         if tskpnd > 0:
             if pptsk == 1 or tskpnd * pptsk > ppnd:
@@ -109,14 +111,17 @@ class ShWriter:
                 pptsk = ppnd // tskpnd
             if nnd != 0 and ntsk != nnd * tskpnd:
                 ntsk = nnd * tskpnd
-                print("\033[93mThe total number of MPI tasks has been changed\033[0m")
+                print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                      file=sys.stderr)
             elif nnd == 0: 
                 if np > 0:
                     ntsk = np // tskpnd
-                    print("\033[93mThe total number of MPI tasks has been changed\033[0m")
+                    print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                          file=sys.stderr)
                 else:
                     ntsk = tskpnd
-                    print("\033[93mThe total number of MPI tasks has been changed\033[0m")
+                    print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                          file=sys.stderr)
         else:
             # Adjust tasks per node to fit processors per task (default pptsk=1).
             tskpnd = ppnd // pptsk
@@ -129,7 +134,8 @@ class ShWriter:
         if ntsk > 0 and nnd > 0:
             if (nnd-1) * tskpnd >= ntsk:
                 print(("\033[93mYou've requested an excessive amount of nodes for"
-                      " the tasks you want.\033[0m This may be a poor use of resources."))
+                      " the tasks you want.\033[0m This may be a poor use of resources."),
+                      file=sys.stderr)
 
         if nnd == 0:
             nnd = 1
@@ -206,7 +212,7 @@ class ShWriter:
         lines.append("")  # An empty line after the SLURM block for prettiness
         self.set_slurm_lines(lines)
 
-    def get_modules(self) -> list[str]:
+    def get_modules(self):
         """Returns a list of strings (lines) containing the commands
         to load the necessary modules, depending on the system and DFT
         code used.
@@ -260,7 +266,7 @@ class ShWriter:
         module_lines.extend(("", ""))  # Add two empty lines
         self.set_modules(module_lines)
     
-    def get_procedure(self, vasp_gam: bool = False) -> list[str]:
+    def get_procedure(self, vasp_gam: bool = False):
         """Returns string containing the procedure (steps in the SLURM input script)"""
         parallel_command = ""
         procedure = []
@@ -634,8 +640,8 @@ if __name__ == "__main__":
         else:
             print(sph)
     elif fil == "_na":
-        print("No scripts were generated")
+        print("No scripts were generated", file=sys.stderr)
     else:
-        print(f"No file '{fil}' found")
+        print(f"No file '{fil}' found", file=sys.stderr)
     
     
