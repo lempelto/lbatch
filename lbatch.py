@@ -55,7 +55,7 @@ class ShWriter:
 
         return spar
     
-    def set_slurm_lines(self, slurm_lines: list[str] = None) -> None:
+    def set_slurm_lines(self, slurm_lines = None) -> None:
         if slurm_lines == None:
             slurm_lines = self.get_slurm_lines()
         self.slurm_lines = slurm_lines
@@ -256,7 +256,7 @@ class ShWriter:
 
         return modle
 
-    def set_modules(self, module_lines: list[str] = None) -> None:
+    def set_modules(self, module_lines = None) -> None:
         if module_lines == None:
             module_lines = self.get_modules()
         self.module_lines = module_lines
@@ -299,7 +299,7 @@ class ShWriter:
         procedure.append(parallel_command + " " + executable)
         return procedure
 
-    def set_procedure(self, procedure: list[str] = None) -> None:
+    def set_procedure(self, procedure = None) -> None:
         if procedure == None:
             procedure = self.get_procedure()
         self.procedure = procedure
