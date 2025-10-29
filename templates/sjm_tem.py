@@ -29,7 +29,7 @@ name        = "?name?"
 inF         = f"?inFile?"
 colF        = "results.txt"
 
-_opt        = False
+_opt        = True
 _fix        = True
 _zfix       = 9.0
 

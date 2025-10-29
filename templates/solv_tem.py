@@ -30,14 +30,13 @@ name        = "?name?"
 inF         = f"?inFile?"
 colF        = "results.txt"
 
-_opt        = False
+_opt        = True
 _fix        = True
 _zfix       = 9.0
 
 _h          = .2
 _kpts       = (2, 2, 1)
 _spinpol    = True
-_charge     = +1
 _temp       = 298.15
 _pbc        = (True, True, False)
 _fmax       = 0.02
