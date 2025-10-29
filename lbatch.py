@@ -220,7 +220,7 @@ class ShWriter:
         modle = []
 
         if self.cluster == "MAHTI":
-            if self.dft.upper() in ["GPAW", "SJM"]:
+            if self.dft.upper() in ["GPAW", "SJM", "SOLV"]:
                 modle = ["module load gpaw/25.1.0-omp"]
                 self.omp = True
             elif self.dft.upper() == "VASP":
@@ -229,7 +229,7 @@ class ShWriter:
                     modle.append("module load gpaw")
                     modle.append(f"export VASP_PP_PATH={self.vasp_pp_path}")
         elif self.cluster == "PUHTI":
-            if self.dft.upper() in ["GPAW", "SJM"]:
+            if self.dft.upper() in ["GPAW", "SJM", "SOLV"]:
                 modle = [
                     "module load mpich/3.3.1",
                     "module load python-env",
