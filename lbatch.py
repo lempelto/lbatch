@@ -280,7 +280,7 @@ class ShWriter:
         if self.csc:
             parallel_command = "srun"
 
-            if self.dft.upper() in ["GPAW", "SJM"]:
+            if self.dft.upper() in ["GPAW", "SJM", "SOLV"]:
                 executable = f"gpaw-python {self.ase_pyfile}"
             elif self.dft.upper() == "VASP":
                 if self.ase:
@@ -507,6 +507,7 @@ if __name__ == "__main__":
     nebtem = path.abspath(path.join(lbfolder, config.templates["nebtem"]))
     sjmtem = path.abspath(path.join(lbfolder, config.templates["sjmtem"]))
     incartem = path.abspath(path.join(lbfolder, config.templates["incartem"]))
+    solvtem = path.abspath(path.join(lbfolder, config.templates["solvtem"]))
     
     arpar = argparse.ArgumentParser(prog="LBatch", 
         description=("Creates the necessary files to submit and run a DFT"
@@ -519,7 +520,8 @@ if __name__ == "__main__":
                             " of the SLURM script file"))
     arpar.add_argument("-d", metavar="DFT CODE", type=str, default=dft,
                         help=("Which DFT package to run the calculations with."
-                             " Currently the options are 'GPAW', 'SJM' and 'VASP'"))
+                             " Currently the options are 'GPAW', 'SOLV', 'SJM',"
+                             " and 'VASP'"))
     arpar.add_argument("-c", metavar="CLUSTER", type=str, default=cluster, 
                         help=("The name of the cluster the job will be run on."
                              f" This allows the code to generate suitable default values. Defaults to '{cluster}'"))
@@ -585,6 +587,9 @@ if __name__ == "__main__":
     elif dft == "SJM":
         use_ase = True
         pytem = sjmtem
+    elif dft == "SOLV":
+        use_ase = True
+        pytem = solvtem
     elif dft == "VASP":
         if use_ase:
             pytem = vtem

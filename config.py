@@ -5,6 +5,7 @@ from os import path
 class config:
     templates = {"gtem": "templates/gpaw_tem.py",
                  "sjmtem": "templates/sjm_tem.py",
+                 "solvtem": "templates/solv_tem.py",
                  "vtem": "templates/vasp_tem.py",
                  "nebtem": "templates/nebtem.py",
                  "incartem": "templates/incartem"}
