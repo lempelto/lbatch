@@ -123,6 +123,11 @@ calc = SolvationGPAW(
 
 atoms.calc = calc
 
+##-----##
+ ###-###
+   ###
+
+
 if _opt:
     _old_kpts = atoms.calc.parameters['kpts']
     atoms.calc.new(kpts = (1,1,1))
@@ -138,15 +143,8 @@ if _opt:
     
 
 E_tot = atoms.get_total_energy()
-
-##-----##
- ###-###
-   ###
-
-
 E_zp = atoms.get_potential_energy()
 # E_fc = atoms.get_potential_energy(force_consistent=True)
-
 m_mom = atoms.get_magnetic_moment()
 
 
@@ -207,7 +205,7 @@ with paropen(colF, "a") as col:
     col.write(f"Completed at {nu.isoformat(timespec='seconds').replace('T',' at ')} ({t_D})\n")
     if f_end != "n.a.": f_end = str(round(f_end, 5))
     col.write(f"{msg}Maximum residual force: {f_end} || Grid points: {gspacing}\n")
-    col.write(f"Magnetic moment: {round(m_mom, 5)} || Electrode potential: {round(e_pot, 5)}\n")
+    col.write(f"Magnetic moment: {round(m_mom, 5)}\n")
     col.write(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).ljust(12)} eV\n")
     col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(E_zp, 5)).ljust(12)} eV\n")
     # col.write(f"{'Force-consistent:'.ljust(indent)} {str(round(E_fc, 5)).ljust(12)} eV\n")
