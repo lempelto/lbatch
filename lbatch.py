@@ -111,16 +111,16 @@ class ShWriter:
                 pptsk = ppnd // tskpnd
             if nnd != 0 and ntsk != nnd * tskpnd:
                 ntsk = nnd * tskpnd
-                print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                print("\e[93mThe total number of MPI tasks was changed\e[0m",
                       file=sys.stderr)
             elif nnd == 0: 
                 if np > 0:
                     ntsk = np // tskpnd
-                    print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                    print("\e[93mThe total number of MPI tasks was changed\e[0m",
                           file=sys.stderr)
                 else:
                     ntsk = tskpnd
-                    print("\033[93mThe total number of MPI tasks has been changed\033[0m",
+                    print("\e[93mThe total number of MPI tasks was changed\e[0m",
                           file=sys.stderr)
         else:
             # Adjust tasks per node to fit processors per task (default pptsk=1).
@@ -133,8 +133,8 @@ class ShWriter:
                 ntsk = tskpnd * nnd
         if ntsk > 0 and nnd > 0:
             if (nnd-1) * tskpnd >= ntsk:
-                print(("\033[93mYou've requested an excessive amount of nodes for"
-                      " the tasks you want.\033[0m This may be a poor use of resources."),
+                print(("\e[93mYou've requested an excessive amount of nodes for"
+                      " the tasks you want.\e[0m This may be a poor use of resources."),
                       file=sys.stderr)
 
         if nnd == 0:
@@ -209,7 +209,7 @@ class ShWriter:
     def prepare_slurm(self, **kwargs) -> None:
         self.set_slurm_parameters(**kwargs)
         lines = self.get_slurm_lines()
-        lines.append("")  # An empty line after the SLURM block for prettiness
+        lines.append("")
         self.set_slurm_lines(lines)
 
     def get_modules(self):
@@ -220,7 +220,7 @@ class ShWriter:
         modle = []
 
         if self.cluster == "MAHTI":
-            if self.dft.upper() in ["GPAW", "SJM", "SOLV"]:
+            if self.dft.upper() in ["GPAW", "SJM", "SOLV"]: # We need to make the program swithing a bit more clever
                 modle = ["module load gpaw/25.1.0-omp"]
                 self.omp = True
             elif self.dft.upper() == "VASP":

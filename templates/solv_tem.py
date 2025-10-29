@@ -124,14 +124,17 @@ calc = SolvationGPAW(
 atoms.calc = calc
 
 if _opt:
-    traj = Trajectory(f"{name}.traj", "a", atoms)
+    _old_kpts = atoms.calc.parameters['kpts']
+    atoms.calc.new(kpts = (1,1,1))
     
+    traj = Trajectory(f"{name}.traj", "a", atoms)
     dyn = FIRE(atoms, logfile=f"{name}.log")
     dyn.attach(traj)
     dyn.run(fmax=_fmax)
     optdone = True
-    
     f_end = round(np.apply_along_axis(np.linalg.norm, 1, atoms.get_forces()).max(), 5)
+
+    atoms.calc.new(kpts = _old_kpts)
     
 
 E_tot = atoms.get_total_energy()
