@@ -148,7 +148,6 @@ E_zp = atoms.get_potential_energy()
 # E_fc = atoms.get_potential_energy(force_consistent=True)
 
 m_mom = atoms.get_magnetic_moment()
-e_pot = atoms.calc.get_electrode_potential()
 
 
 if _wf:
