@@ -84,12 +84,7 @@ f_end = "n.a."
 
 
 
-## Setting up the SJM
-sj = {
-    'excess_electrons': -_charge,
-    'grand_output': False
-}
-
+## Setting up the solvation
 epsinf = 78.36  # dielectric constant of water at 298 K [J. Chem. Phys. 141, 174108 (2014)]
 gamma = 18.4 * 1e-3 * Pascal * m
 cavity = EffectivePotentialCavity(

@@ -413,7 +413,8 @@ def write_py(inFile: str="", dft: str="", template: str="./pytem.py") -> str:
                         l = l.replace("?inFile?", str(inFile))
                     pytxt = pytxt + l
         except FileNotFoundError:
-            pytxt = f"The template file was not found in {template}"
+            print(f"The template file was not found in {template}")
+            raise NotImplementedError
 
         with open(pyFile,"w") as w:
             w.write(f"{pytxt}\n")
