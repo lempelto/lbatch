@@ -192,11 +192,11 @@ with paropen(colF, "a") as col:
 
     col.write(f"\n    Job {name}:\n")
     col.write(f"Completed at {nu.isoformat(timespec='seconds').replace('T',' at ')} ({t_D})\n")
-    if f_end != "n.a.": f_end = str(round(f_end, 5)).replace('.',',')
+    if f_end != "n.a.": f_end = str(round(f_end, 5))
     col.write(f"{msg}Maximum residual force: {f_end} || Magnetic moment: {round(m_mom, 5)}\n")
-    col.write(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).replace('.',',').ljust(12)} eV\n")
-    col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(E_zp, 5)).replace('.',',').ljust(12)} eV\n")
-    col.write(f"{'Force-consistent:'.ljust(indent)} {str(round(E_fc, 5)).replace('.',',').ljust(12)} eV\n")
+    col.write(f"{'Total energy:'.ljust(indent)} {str(round(E_tot, 5)).ljust(12)} eV\n")
+    col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(E_zp, 5)).ljust(12)} eV\n")
+    col.write(f"{'Force-consistent:'.ljust(indent)} {str(round(E_fc, 5)).ljust(12)} eV\n")
 
     col.write(f"\n{'='*100}\n")
 

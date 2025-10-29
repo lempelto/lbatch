@@ -162,22 +162,22 @@ if rank == 0:
 
         col.write(f"\n    Job {filename}:\n")
         col.write(f"Completed at {nu.isoformat(timespec='seconds').replace('T',' at ')} ({t_D})\n")
-        col.write(f"{msg}Maximum residual force: {str(round(f_end, 5)).replace('.',',')} || Grid points: {gspacing}\n\n")
+        col.write(f"{msg}Maximum residual force: {str(round(f_end, 5))} || Grid points: {gspacing}\n\n")
 
         # Initial structure
         col.write(f"   Initial stucture\n")
-        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_initial, 5)).replace('.',',').ljust(12)} eV\n")
+        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_initial, 5)).ljust(12)} eV\n")
 
         # Transition state
         col.write(f"   Transition state [{ind_TS}]\n")
-        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_TS, 5)).replace('.',',').ljust(12)} eV\n")
-        col.write(f"Activation energy:\n{'  Forward:'.ljust(indent)} {str(round(Ea_f, 5)).replace('.',',').ljust(12)} eV\n{'  Reverse:'.ljust(indent)} {str(round(Ea_r, 5)).replace('.',',').ljust(12)} eV\n")
-        col.write(f"{'  dE:'.ljust(indent)} {str(round(dE, 5)).replace('.',',').ljust(12)} eV\n")
+        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_TS, 5)).ljust(12)} eV\n")
+        col.write(f"Activation energy:\n{'  Forward:'.ljust(indent)} {str(round(Ea_f, 5)).ljust(12)} eV\n{'  Reverse:'.ljust(indent)} {str(round(Ea_r, 5)).ljust(12)} eV\n")
+        col.write(f"{'  dE:'.ljust(indent)} {str(round(dE, 5)).ljust(12)} eV\n")
 
 
         # Final structure
         col.write(f"   Final stucture\n")
-        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_final, 5)).replace('.',',').ljust(12)} eV\n")
+        col.write(f"{'Extrapolated ZP:'.ljust(indent)} {str(round(e_zp_final, 5)).ljust(12)} eV\n")
 
         col.write(f"\n{'='*100}\n")
 

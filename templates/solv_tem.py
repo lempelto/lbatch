@@ -4,7 +4,7 @@ from ase.io import read, write, Trajectory
 from ase.optimize import FIRE
 from ase.parallel import paropen, world
 from ase.vibrations import Infrared
-from gpaw import GPAW, FermiDirac, Davidson, PoissonSolver, MixerDif
+from gpaw import GPAW, FermiDirac, Davidson, PoissonSolver, MixerDif, MixerSum
 from datetime import datetime
 import numpy as np
 from os import remove as os_rm
@@ -17,7 +17,8 @@ from gpaw.solvation import (
     EffectivePotentialCavity,
     LinearDielectric,
     GradientSurface,
-    SurfaceInteraction)
+    SurfaceInteraction,
+    SolvationGPAW)
 
 
 #####
@@ -39,7 +40,7 @@ _spinpol    = True
 _charge     = +1
 _temp       = 298.15
 _pbc        = (True, True, False)
-_fmax       = 0.005
+_fmax       = 0.02
 
 _vdW_radii  = {'H': 1.00,
                'C': 1.70,
@@ -106,7 +107,7 @@ interactions = [SurfaceInteraction(surface_tension=gamma)]
  ###-###
 ##-RUN-##
 
-calc = SJM(
+calc = SolvationGPAW(
     mode        = 'fd',
     spinpol     = _spinpol,
     h           = _h,
@@ -119,8 +120,8 @@ calc = SJM(
     # nbands      = -500,
     setups      = {'Ni': ':d,9.'},
     # mixer       = MixerDif(0.1, 10, weight=50.0),
+    mixer       = MixerSum(0.02, 5, 100),
     # convergence = {'energy': 5.e-4, 'density': 1.e-4, 'eigenstates': 4.e-8, 'bands': 'occupied'},
-    sj          = sj,
     cavity      = cavity,
     dielectric  = dielectric,
     interactions= interactions
@@ -153,7 +154,7 @@ m_mom = atoms.get_magnetic_moment()
 e_pot = atoms.calc.get_electrode_potential()
 
 
-if _wf: 
+if _wf:
     calc.write(filename=f"{name}.gpw", mode="all")
 
 
